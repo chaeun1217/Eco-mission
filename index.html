@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EcoMission — 기후·환경·생태 통합 웹앱</title>
+<style>
+  /* ---------- 기본 스타일 ---------- */
+  :root{
+    --bg:#f3faf6;
+    --card:#ffffff;
+    --accent:#2aa86b; /* 초록 */
+    --accent-2:#2bb7e6; /* 청록 */
+    --muted:#6b7280;
+    --glass: rgba(255,255,255,0.65);
+    --shadow: 0 6px 18px rgba(15,23,42,0.08);
+    font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg, #e9fbf5 0%, var(--bg) 100%);color:#0f172a;}
+  a{color:inherit}
+  .app{display:flex;min-height:100vh;gap:24px;padding:28px;box-sizing:border-box;}
+  /* ---------- 사이드바 ---------- */
+  .sidebar{
+    width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.82));
+    border-radius:16px;padding:20px;box-shadow:var(--shadow);backdrop-filter: blur(6px);
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;
+  }
+  .logo{
+    width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;
+    box-shadow: 0 6px 18px rgba(43,166,107,0.22);
+  }
+  .brand h1{font-size:18px;margin:0;}
+  .user-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;background:rgba(43,166,107,0.06);border-radius:10px}
+  .user-info{display:flex;gap:10px;align-items:center}
+  .avatar{width:42px;height:42px;border-radius:10px;background:linear-gradient(180deg,#fff,#f1fff6);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)}
+  .nav{display:flex;flex-direction:column;gap:8px}
+  .nav button{background:none;border:none;text-align:left;padding:10px;border-radius:10px;cursor:pointer;font-weight:600;color:#074b32}
+  .nav button.active{background:linear-gradient(90deg, rgba(43,166,107,0.12), rgba(43,166,107,0.06));box-shadow:inset 0 0 0 1px rgba(43,166,107,0.04)}
+  .small{font-size:12px;color:var(--muted)}
+  .leaderboard{background:linear-gradient(180deg, rgba(43,166,107,0.03), rgba(43,166,107,0.01));padding:12px;border-radius:10px;}
+  .leaderboard h4{margin:0 0 8px 0;font-size:13px}
+  .leader-row{display:flex;justify-content:space-between;font-weight:600;padding:6px 0}
+  .footer{margin-top:auto;font-size:12px;color:var(--muted)}
+  /* ---------- 메인 ---------- */
+  .main{flex:1;display:flex;flex-direction:column;gap:20px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .searchbox{flex:1;display:flex;gap:10px;align-items:center;background:var(--card);padding:10px;border-radius:12px;box-shadow:var(--shadow)}
+  .searchbox input{border:none;outline:none;font-size:14px;background:transparent;flex:1}
+  .stats{display:flex;gap:14px}
+  .stat-card{background:var(--card);padding:14px;border-radius:12px;box-shadow:var(--shadow);min-width:160px;display:flex;flex-direction:column;gap:8px}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .col-8{grid-column:span 8}
+  .col-4{grid-column:span 4}
+  .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow)}
+  h2{margin:0;font-size:18px}
+  p.lead{color:var(--muted);margin:6px 0 0 0}
+  /* ---------- Missions ---------- */
+  .missions-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .mission{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid rgba(11,85,46,0.04)}
+  .mission .left{display:flex;gap:12px;align-items:center}
+  .badge{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;padding:6px 10px;border-radius:999px;font-weight:700}
+  .mission button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer}
+  .mission button.secondary{background:#eaf8f0;color:var(--accent);font-weight:700}
+  /* ---------- Marketplace ---------- */
+  .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .item-card{padding:12px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfffb);box-shadow: 0 8px 20px rgba(13,48,34,0.04);display:flex;flex-direction:column;gap:8px}
+  .item-card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+  .item-actions{display:flex;justify-content:space-between;align-items:center}
+  .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+  .btn.green{background:var(--accent);color:#fff}
+  .btn.ghost{background:transparent;border:1px solid rgba(11,85,46,0.08)}
+  /* ---------- Recommendations ---------- */
+  .rec-list{display:flex;flex-direction:column;gap:10px}
+  .rec{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(90deg, rgba(43,166,107,0.03), rgba(43,166,107,0.01))}
+  .rec img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+  /* ---------- Carbon Lab ---------- */
+  .carbon-form{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;gap:10px}
+  .input,select{padding:8px;border-radius:8px;border:1px solid #e6eef0;outline:none}
+  .result{background:linear-gradient(180deg,#f8fffb,#ecfff6);padding:12px;border-radius:10px}
+  /* ---------- 반응형 ---------- */
+  @media (max-width:1000px){
+    .app{flex-direction:column;padding:16px}
+    .sidebar{width:100%;flex-direction:row;overflow:auto;padding:12px}
+    .main{width:100%}
+    .grid{grid-template-columns:repeat(6,1fr)}
+    .col-8{grid-column:span 6}
+    .col-4{grid-column:span 6}
+    .market-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    .brand h1{display:none}
+    .sidebar{gap:8px}
+    .leaderboard{display:none}
+    .market-grid{grid-template-columns:1fr}
+  }
+
+  /* ---------- 작고 쾌적한 애니메이션 ---------- */
+  .grow{transition:transform .18s ease}
+  .grow:active{transform:scale(.98)}
+  .leaf-anim{animation:leaf 2.5s ease-in-out infinite}
+  @keyframes leaf{
+    0%{transform:translateY(0) rotate(0deg)}
+    50%{transform:translateY(-6px) rotate(2deg)}
+    100%{transform:translateY(0) rotate(0deg)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Navigation">
+    <div class="brand">
+      <div class="logo">EM</div>
+      <div>
+        <h1>EcoMission</h1>
+        <div class="small">작은 행동, 큰 변화</div>
+      </div>
+    </div>
+
+    <div class="user-card" id="userCard">
+      <div class="user-info">
+        <div class="avatar" id="avatarText">채</div>
+        <div>
+          <div id="username">채은</div>
+          <div class="small" id="userPointsSmall">포인트: 0</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">레벨</div>
+        <div id="userLevel" style="font-weight:800;color:var(--accent)">Lv.1</div>
+      </div>
+    </div>
+
+    <nav class="nav" role="navigation">
+      <button class="active" data-view="dashboard">대시보드</button>
+      <button data-view="missions">미션(챌린지)</button>
+      <button data-view="market">마켓(재활용 거래)</button>
+      <button data-view="recs">추천(브랜드)</button>
+      <button data-view="carbon">Carbon Lab</button>
+    </nav>
+
+    <div class="leaderboard">
+      <h4>주간 랭킹</h4>
+      <div id="leaderboardRows">
+        <!-- JS가 채움 -->
+      </div>
+    </div>
+
+    <div class="footer small">
+      제작자: EcoMission 팀 · 교육·활동용 데모<br>
+      저장: 로컬 (localStorage)
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="searchbox">
+        <svg width="20" height="20" viewBox="0 0 24 24" style="opacity:.7"><path fill="#074b32" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM10 15a5 5 0 110-10 5 5 0 010 10z"/></svg>
+        <input id="search" placeholder="미션·상품·브랜드 검색" />
+        <button class="btn ghost" id="btnShare">공유하기</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="small">포인트</div>
+        <div class="badge" id="topPoints">0</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">전체 포인트</div>
+            <div style="font-size:20px;font-weight:800" id="statPoints">0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">탄소 절감량(예측)</div>
+            <div style="font-weight:800;color:var(--accent)" id="statCO2">0 kg</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="small">미션 진행</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-weight:800" id="statMissions">0</div>
+          <div class="small">완료</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="small">마켓 거래</div>
+        <div style="font-weight:800" id="statTrades">0</div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+      <section class="col-8 card" id="viewDashboard">
+        <h2>대시보드</h2>
+        <p class="lead">오늘의 미션과 최근 활동을 한눈에 확인해보세요.</p>
+
+        <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px" class="card">
+            <h3 style="margin:0">오늘의 추천 미션</h3>
+            <div id="todayMission" style="margin-top:10px"></div>
+          </div>
+
+          <div style="flex:1;min-width:220px" class="card">
+            <h3 style="margin:0">내 활동 히스토리</h3>
+            <div id="activityLog" style="margin-top:10px;max-height:160px;overflow:auto"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="display:flex;align-items:center;gap:10px;margin:0">
+            <span>리더보드</span>
+            <svg class="leaf-anim" width="26" height="26" viewBox="0 0 24 24"><path fill="#2aa86b" d="M12 2C8 6 4 15 12 22c8-7 4-16 0-20z"/></svg>
+          </h3>
+          <div id="leaderboardMain" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <section class="col-4 card" id="sideQuick">
+        <h2>빠른 행동</h2>
+        <p class="lead">바로 할 수 있는 작은 행동들</p>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <button class="btn green grow" id="btnQuickTransit">대중교통으로 출근하기 (+10P)</button>
+          <button class="btn green grow" id="btnQuickCup">텀블러 사용하기 (+5P)</button>
+          <button class="btn green grow" id="btnQuickVeg">오늘 채식하기 (+8P)</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <h4 style="margin:0">친환경 팁</h4>
+          <p class="small" style="margin-top:8px">전등 1시간 줄이면 약 0.04kg CO₂ 절감. 작은 변화가 모이면 커요.</p>
+        </div>
+      </section>
+
+      <!-- Missions view -->
+      <section class="col-8 card" id="viewMissions" style="display:none">
+        <h2>미션(챌린지)</h2>
+        <p class="lead">미션을 수행하고 포인트를 모아보세요.</p>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div style="flex:1">
+            <div class="card">
+              <h3 style="margin:0">미션 목록</h3>
+              <div class="missions-list" id="missionsList"></div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <input id="newMissionText" class="input" placeholder="새 미션 추가 (ex: 30분 걷기)" />
+                <input id="newMissionPoints" class="input" placeholder="포인트" style="width:80px" />
+                <button class="btn green" id="addMissionBtn">추가</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="width:280px">
+            <div class="card">
+              <h3 style="margin:0">내 뱃지</h3>
+              <div id="badges" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+              <h3 style="margin:0">주간 목표</h3>
+              <div style="margin-top:8px">
+                <label class="small">이번주 목표 포인트</label>
+                <input id="weeklyGoal" class="input" type="number" min="0" />
+                <div style="margin-top:8px">
+                  <div class="small">진행</div>
+                  <div id="goalProgress" style="font-weight:800;color:var(--accent)">0 / 0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Marketplace view -->
+      <section class="col-8 card" id="viewMarket" style="display:none">
+        <h2>마켓(재활용 거래)</h2>
+        <p class="lead">안 쓰는 물건을 올리고 포인트로 거래하세요.</p>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div style="flex:1">
+            <div style="display:flex;gap:8px">
+              <input id="sellTitle" class="input" placeholder="물건 이름" />
+              <input id="sellPrice" class="input" placeholder="가격(P)" style="width:100px" />
+            </div>
+            <textarea id="sellDesc" class="input" placeholder="설명 (상태, 수거방법 등)" style="margin-top:8px"></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+              <input id="sellImg" class="input" placeholder="이미지 URL (선택)" />
+              <button class="btn green" id="postItem">등록</button>
+            </div>
+
+            <div style="margin-top:12px">
+              <h3 style="margin:0">거래 목록</h3>
+              <div class="market-grid" id="marketGrid"></div>
+            </div>
+          </div>
+
+          <div style="width:280px">
+            <div class="card">
+              <h3 style="margin:0">내 판매내역</h3>
+              <div id="mySales" style="margin-top:8px"></div>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+              <h3 style="margin:0">통계</h3>
+              <div style="margin-top:8px">
+                <div class="small">총 거래</div>
+                <div id="statTrades2" style="font-weight:800">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommendations view -->
+      <section class="col-4 card" id="viewRecs" style="display:none">
+        <h2>추천 브랜드 & 제휴</h2>
+        <p class="lead">환경을 생각한 제품들을 큐레이션했습니다.</p>
+
+        <div style="margin-top:12px">
+          <h4>스폰서 제휴</h4>
+          <div class="rec-list" id="recList"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4 style="margin:0">포인트 교환</h4>
+          <p class="small">포인트로 제휴 상품 쿠폰을 교환할 수 있어요.</p>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <select id="couponSelect" class="input">
+              <option value="0">쿠폰 선택</option>
+              <option value="100">친환경 텀블러 교환권 (100P)</option>
+              <option value="50">리필스테이션 10% 할인 (50P)</option>
+            </select>
+            <button class="btn green" id="redeemBtn">교환</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Carbon Lab view -->
+      <section class="col-8 card" id="viewCarbon" style="display:none">
+        <h2>Carbon Lab</h2>
+        <p class="lead">간단한 활동 입력으로 탄소 배출을 계산하고 오프셋하세요.</p>
+
+        <div class="carbon-form" style="margin-top:12px">
+          <div class="row">
+            <div style="flex:1">
+              <label class="small">교통 (하루 왕복 거리, km)</label>
+              <input id="inputKm" class="input" type="number" value="10" />
+            </div>
+            <div style="flex:1">
+              <label class="small">전기 사용 (kWh / 월)</label>
+              <input id="inputKwh" class="input" type="number" value="150" />
+            </div>
+          </div>
+          <div class="row">
+            <div style="flex:1">
+              <label class="small">식단 (주 평균 채식일 수)</label>
+              <input id="inputVegDays" class="input" type="number" value="2" min="0" max="7" />
+            </div>
+            <div style="flex:1">
+              <label class="small">가구원 수</label>
+              <input id="inputHouse" class="input" type="number" value="1" min="1" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn green" id="calcCarbon">계산</button>
+            <div id="carbonResult" class="result" style="flex:1">결과: — kgCO₂e</div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <label class="small">오프셋 옵션</label>
+            <select id="offsetOption" class="input">
+              <option value="tree" data-cost="5">나무 1그루 심기 (5P, 약 20kg CO₂ 상쇄)</option>
+              <option value="fund" data-cost="50">지역 복원 펀드 (50P)</option>
+            </select>
+            <button class="btn green" id="offsetBtn">오프셋(포인트)</button>
+          </div>
+
+          <div style="margin-top:8px">
+            <h4 style="margin:0">오프셋 히스토리</h4>
+            <div id="offsetHistory" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* =========================
+   EcoMission — Frontend JS
+   =========================
+   로컬 저장소 키와 기본 데이터 설정.
+*/
+
+const STORAGE_KEY = 'eco_app_v1';
+const sampleUsers = [
+  {name:'가경', points:420},
+  {name:'민준', points:380},
+  {name:'채은', points:220},
+  {name:'수아', points:180},
+  {name:'지훈', points:140},
+];
+
+const defaults = {
+  username: '채은',
+  points: 120,
+  level: 1,
+  missions: [
+    {id:1, text:'텀블러로 음료 마시기', points:5, done:false},
+    {id:2, text:'대중교통 이용하기', points:10, done:false},
+    {id:3, text:'채식 한 끼', points:8, done:false},
+  ],
+  activities: [],
+  market: [
+    {id:1,title:'커스텀 텀블러(보관상태 좋음)', price:120, desc:'깨끗하게 사용한 텀블러입니다.', img:'' ,seller:'채은'},
+    {id:2,title:'중고 전기자전거 헬멧', price:80, desc:'살짝 사용감 있으나 안전한 상태', img:'', seller:'가경'},
+  ],
+  sales: [],
+  recs: [
+    {id:1,title:'리필스테이션', desc:'용기 재사용으로 플라스틱 감소', img:'', link:'#'},
+    {id:2,title:'제로웨이스트 샵', desc:'포장 최소화 상품', img:'', link:'#'},
+    {id:3,title:'친환경 세제', desc:'생분해성 성분', img:'', link:'#'}
+  ],
+  trades: 0,
+  carbon: {
+    offsets: [],
+    lastEstimateKg:0
+  },
+  weeklyGoal: 200
+};
+
+// 저장소 불러오기
+function loadStore(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) { localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults)); return JSON.parse(JSON.stringify(defaults)); }
+  try { return JSON.parse(raw); } catch(e){ localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults)); return JSON.parse(JSON.stringify(defaults)); }
+}
+function saveStore(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// 전역 state
+let state = loadStore();
+
+/* ---------- 유틸 ---------- */
+const $ = (sel, base=document) => base.querySelector(sel);
+const $$ = (sel, base=document) => Array.from(base.querySelectorAll(sel));
+function formatPoints(n){ return Math.round(n) + ' P'; }
+function uid(prefix='i'){ return prefix + Math.random().toString(36).slice(2,9); }
+function notify(msg){ console.log('[Notify]',msg); /* 간단 알림 — 필요 시 커스텀 */ }
+
+/* ---------- UI 초기화 ---------- */
+function renderUser(){
+  $('#username').textContent = state.username;
+  $('#avatarText').textContent = state.username[0] || '이';
+  $('#userPointsSmall').textContent = '포인트: ' + state.points;
+  $('#topPoints').textContent = state.points;
+  $('#statPoints').textContent = state.points;
+  $('#userLevel').textContent = 'Lv.' + state.level;
+}
+function renderMissions(){
+  const wrap = $('#missionsList'); wrap.innerHTML = '';
+  state.missions.forEach(m=>{
+    const el = document.createElement('div'); el.className='mission';
+    el.innerHTML = `
+      <div class="left">
+        <div class="badge">${m.points}P</div>
+        <div>
+          <div style="font-weight:800">${m.text}</div>
+          <div class="small">${m.done? '완료됨' : '미완료'}</div>
+        </div>
+      </div>
+      <div>
+        ${m.done ? `<button class="btn secondary" data-id="${m.id}">보상 수령</button>` : `<button class="btn green" data-id="${m.id}">완료</button>`}
+      </div>
+    `;
+    wrap.appendChild(el);
+  });
+}
+function renderBadges(){
+  const wrap = $('#badges'); wrap.innerHTML = '';
+  // 간단 규칙: 포인트 기준으로 뱃지
+  const badges = [];
+  if(state.points >= 100) badges.push('녹색 파수꾼');
+  if(state.missions.filter(m=>m.done).length >= 3) badges.push('미션 마스터');
+  if(state.trades >= 1) badges.push('순환 상인');
+  if(state.carbon.offsets.length > 0) badges.push('지구를 심은 사람');
+  if(badges.length===0) badges.push('새싹 시작자');
+
+  badges.forEach(b=>{
+    const d = document.createElement('div');
+    d.className='badge';
+    d.style.background='linear-gradient(90deg, var(--accent), var(--accent-2))';
+    d.style.padding='6px 10px';
+    d.textContent = b;
+    wrap.appendChild(d);
+  });
+}
+
+function renderTodayMission(){
+  const idx = Math.floor(Math.random()*state.missions.length);
+  const m = state.missions[idx] || {text:'텀블러 사용하기', points:5};
+  $('#todayMission').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:800">${m.text}</div>
+        <div class="small">보상 ${m.points}P · 추천</div>
+      </div>
+      <button class="btn green" data-id="${m.id}" id="todayDoBtn">완료</button>
+    </div>
+  `;
+  $('#todayDoBtn').onclick = ()=> completeMission(m.id);
+}
+
+function renderActivityLog(){
+  const el = $('#activityLog'); el.innerHTML = '';
+  state.activities.slice().reverse().slice(0,40).forEach(a=>{
+    const d = document.createElement('div');
+    d.style.padding='6px 0'; d.style.borderBottom='1px dashed #eef7f0';
+    d.innerHTML = `<div style="font-weight:700">${a.title}</div><div class="small">${a.time}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderLeaderboard(){
+  const rows = $('#leaderboardRows'); rows.innerHTML='';
+  // 샘플 사용자와 나 합치기
+  const all = sampleUsers.map(u=>({name:u.name, points:u.points})).concat([{name:state.username,points:state.points}]);
+  const sorted = all.sort((a,b)=>b.points-a.points).slice(0,5);
+  sorted.forEach((u,i)=>{
+    const r = document.createElement('div'); r.className='leader-row';
+    r.innerHTML = `<div>${i+1}. ${u.name}</div><div style="color:var(--accent);font-weight:800">${u.points}P</div>`;
+    rows.appendChild(r);
+  });
+
+  // 메인 리더보드
+  const main = $('#leaderboardMain'); main.innerHTML='';
+  sorted.forEach(u=>{
+    const row = document.createElement('div'); row.style.display='flex';row.style.justifyContent='space-between';row.style.padding='6px 0';
+    row.innerHTML = `<div style="font-weight:700">${u.name}</div><div style="color:var(--accent)">${u.points} P</div>`;
+    main.appendChild(row);
+  });
+}
+
+function renderMarket(){
+  const grid = $('#marketGrid'); grid.innerHTML='';
+  state.market.forEach(item=>{
+    const card = document.createElement('div'); card.className='item-card';
+    card.innerHTML = `
+      <img src="${item.img || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22180%22><rect width=%22300%22 height=%22180%22 fill=%22%23f4fff8%22/><text x=%2210%22 y=%2290%22 fill=%22%230a3b2b%22 font-size=%2214%22>이미지 없음</text></svg>'}" alt="">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-weight:800">${item.title}</div>
+        <div class="small">${item.desc}</div>
+      </div>
+      <div class="item-actions">
+        <div style="font-weight:800">${item.price} P</div>
+        <div>
+          ${item.seller === state.username ? '<button class="btn ghost" data-id="'+item.id+'">내 물건</button>' : '<button class="btn green" data-buy="'+item.id+'">구매</button>'}
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  // 구매 버튼 바인딩
+  $$('.item-card .btn.green', grid).forEach(b=>{
+    b.onclick = (ev)=>{
+      const id = +b.getAttribute('data-buy');
+      buyItem(id);
+    };
+  });
+
+  // my sales
+  const ms = $('#mySales'); ms.innerHTML='';
+  state.market.filter(i=>i.seller===state.username).forEach(i=>{
+    const d = document.createElement('div'); d.style.padding='6px 0'; d.innerHTML = `<div style="font-weight:800">${i.title}</div><div class="small">${i.price} P</div>`;
+    ms.appendChild(d);
+  });
+
+  $('#statTrades2').textContent = state.trades;
+}
+
+function renderRecs(){
+  const list = $('#recList'); list.innerHTML='';
+  state.recs.forEach(r=>{
+    const div = document.createElement('div'); div.className='rec';
+    div.innerHTML = `
+      <img src="${r.img || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22><rect width=%2264%22 height=%2264%22 fill=%22%23e6fbf0%22/><text x=%226%22 y=%2240%22 fill=%22%23094835%22 font-size=%2210%22>브랜드</text></svg>'}" />
+      <div style="flex:1">
+        <div style="font-weight:800">${r.title}</div>
+        <div class="small">${r.desc}</div>
+      </div>
+      <div><a href="${r.link}" class="btn green" target="_blank">자세히</a></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function renderCarbon(){
+  $('#carbonResult').textContent = `결과: ${Math.round(state.carbon.lastEstimateKg)} kgCO₂e`;
+  $('#offsetHistory').innerHTML = '';
+  state.carbon.offsets.slice().reverse().forEach(o=>{
+    const d = document.createElement('div');
+    d.style.padding='6px 0'; d.style.borderBottom='1px dashed #eef7f0';
+    d.innerHTML = `<div style="font-weight:800">${o.type}</div><div class="small">${o.time} · ${o.cost}P 사용</div>`;
+    $('#offsetHistory').appendChild(d);
+  });
+}
+
+/* ---------- Actions ---------- */
+
+function saveAndRerender(){
+  saveStore(state);
+  renderAll();
+}
+
+function renderAll(){
+  renderUser();
+  renderMissions();
+  renderBadges();
+  renderTodayMission();
+  renderActivityLog();
+  renderLeaderboard();
+  renderMarket();
+  renderRecs();
+  renderCarbon();
+  $('#statMissions').textContent = state.missions.filter(m=>m.done).length;
+  $('#statTrades').textContent = state.trades;
+  $('#goalProgress').textContent = `${state.points} / ${state.weeklyGoal}`;
+}
+
+/* 미션 완료 */
+function completeMission(id){
+  const m = state.missions.find(x=>x.id==id);
+  if(!m) return;
+  if(m.done){
+    // 보상 수령 또는 이미 수령 상태(단순화)
+    notify('이미 완료된 미션입니다.');
+    return;
+  }
+  m.done = true;
+  state.points += m.points;
+  state.activities.push({title:`미션 완료: ${m.text} (+${m.points}P)`, time: new Date().toLocaleString()});
+  state.trades = state.trades; // no change
+  saveAndRerender();
+}
+
+/* 미션 수령 (보상) - in this design, 완료와 수령은 동일 */
+function claimReward(id){
+  // 간단히 completeMission과 동일 처리
+  completeMission(id);
+}
+
+/* 새 미션 추가 */
+$('#addMissionBtn').onclick = ()=>{
+  const text = $('#newMissionText').value.trim();
+  const pts = parseInt($('#newMissionPoints').value) || 5;
+  if(!text) return alert('미션 내용을 입력하세요.');
+  const newM = {id:Date.now(), text, points:pts, done:false};
+  state.missions.push(newM);
+  state.activities.push({title:`미션 추가: ${text}`, time:new Date().toLocaleString()});
+  $('#newMissionText').value=''; $('#newMissionPoints').value='';
+  saveAndRerender();
+};
+
+/* 퀵 버튼 */
+$('#btnQuickTransit').onclick = ()=> { state.points+=10; state.activities.push({title:'대중교통 이용(+10P)', time:new Date().toLocaleString()}); saveAndRerender(); };
+$('#btnQuickCup').onclick = ()=> { state.points+=5; state.activities.push({title:'텀블러 사용(+5P)', time:new Date().toLocaleString()}); saveAndRerender(); };
+$('#btnQuickVeg').onclick = ()=> { state.points+=8; state.activities.push({title:'채식 한끼(+8P)', time:new Date().toLocaleString()}); saveAndRerender(); };
+
+/* 마켓: 등록 */
+$('#postItem').onclick = ()=>{
+  const title = $('#sellTitle').value.trim();
+  const price = parseInt($('#sellPrice').value) || 10;
+  const desc = $('#sellDesc').value.trim();
+  const img = $('#sellImg').value.trim();
+  if(!title) return alert('상품명을 입력하세요.');
+  const it = {id:Date.now(), title, price, desc, img, seller: state.username};
+  state.market.push(it);
+  state.activities.push({title:`판매 등록: ${title} (${price}P)`, time:new Date().toLocaleString()});
+  $('#sellTitle').value=''; $('#sellPrice').value=''; $('#sellDesc').value=''; $('#sellImg').value='';
+  saveAndRerender();
+};
+
+/* 마켓: 구매 (포인트 기반) */
+function buyItem(id){
+  const item = state.market.find(i=>i.id==id);
+  if(!item) return alert('상품을 찾을 수 없습니다.');
+  if(item.seller === state.username) return alert('자기 상품은 구매할 수 없습니다.');
+  if(state.points < item.price) return alert('포인트가 부족합니다.');
+  // 거래 수수료 5%
+  const fee = Math.ceil(item.price * 0.05);
+  state.points -= item.price;
+  state.trades += 1;
+  // 수수료는 플랫폼이 가져감, 판매자 포인트는 item.price - fee
+  // 판매자 포인트 처리 (간단 시뮬레이션: 만약 판매자가 로컬 유저면 포인트 추가)
+  if(item.seller === state.username) {
+    // unreachable due to earlier check
+  } else if(item.seller === state.username) {
+    // no-op
+  } else {
+    // 만약 판매자가 로컬 유저라면 처리 — 이 데모는 샘플 사용자만 존재하므로 생략
+  }
+  // 활동 로그
+  state.activities.push({title:`구매: ${item.title} (-${item.price}P)`, time:new Date().toLocaleString()});
+  // remove item from market
+  state.market = state.market.filter(i=>i.id!==id);
+  saveAndRerender();
+  alert(`구매 완료! ${item.price}P 사용, 수수료 ${fee}P`);
+}
+
+/* 추천 쿠폰 교환 */
+$('#redeemBtn').onclick = ()=>{
+  const val = parseInt($('#couponSelect').value);
+  if(!val) return alert('쿠폰을 선택하세요.');
+  if(state.points < val) return alert('포인트 부족');
+  state.points -= val;
+  state.activities.push({title:`쿠폰 교환 (-${val}P)`, time:new Date().toLocaleString()});
+  saveAndRerender();
+  alert('쿠폰으로 교환되었습니다. 제휴사에서 사용하세요.');
+};
+
+/* Carbon 계산 (매우 단순화된 계산식, 교육용 예시) */
+$('#calcCarbon').onclick = ()=>{
+  const km = parseFloat($('#inputKm').value) || 0; // 하루 왕복 km
+  const kwh = parseFloat($('#inputKwh').value) || 0; // 월
+  const veg = parseFloat($('#inputVegDays').value) || 0;
+  const house = parseInt($('#inputHouse').value) || 1;
+
+  // 교통: km * 0.21 kgCO2/km (평균 승용차) * 365 / 365 -> 하루값 -> 연간 변환
+  const transportAnnual = (km * 0.21) * 365;
+  // 전기: kWh * 0.45 kgCO2/kWh (지역에 따라 다름) -> 월 -> 연
+  const energyAnnual = (kwh * 0.45) * 12;
+  // 식단: 채식일수 * -0.5kgCO2 * 52 (채식으로 절감되는 양 대략)
+  const dietAnnual = (7 - veg) * 0.2 * 52; // 고기 소비일수에 비례 증가 (굴절화)
+  // 가구원수로 나눔
+  let annualCO2 = (transportAnnual + energyAnnual + dietAnnual) / house;
+  // 안전장치
+  if(annualCO2 < 0) annualCO2 = 0;
+
+  state.carbon.lastEstimateKg = Math.round(annualCO2);
+  state.activities.push({title:`탄소 계산 (예상 연간 ${Math.round(annualCO2)} kgCO₂e)`, time:new Date().toLocaleString()});
+  saveAndRerender();
+  alert(`예상 연간 배출량: ${Math.round(annualCO2)} kgCO₂e`);
+};
+
+/* 오프셋 (포인트로 나무심기 등) */
+$('#offsetBtn').onclick = ()=>{
+  const opt = $('#offsetOption').value;
+  const optionEl = $('#offsetOption').selectedOptions[0];
+  const cost = parseInt(optionEl.getAttribute('data-cost') || 0);
+  if(state.points < cost) return alert('포인트가 부족합니다.');
+  let label = optionEl.textContent;
+  state.points -= cost;
+  const entry = {id:Date.now(), type: label, cost: cost, time: new Date().toLocaleString()};
+  state.carbon.offsets.push(entry);
+  state.activities.push({title:`오프셋: ${label} (-${cost}P)`, time:new Date().toLocaleString()});
+  saveAndRerender();
+  alert('오프셋이 기록되었습니다. 작은 행동이 지구에 도움이 됩니다!');
+};
+
+/* 오프셋 히스토리 렌더는 renderCarbon가 담당 */
+
+/* UI 네비게이션 */
+$$('.nav button').forEach(b=>{
+  b.onclick = ()=> {
+    $$('.nav button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const view = b.getAttribute('data-view');
+    // 모든 뷰 숨기기
+    ['Dashboard','Missions','Market','Recs','Carbon'].forEach(v=>{
+      const el = window['view'+v];
+    });
+    // 간단: id로 toggle
+    ['viewDashboard','viewMissions','viewMarket','viewRecs','viewCarbon'].forEach(id=>{
+      const el = $('#'+id);
+      if(!el) return;
+      el.style.display = (id.toLowerCase().includes(view)) ? '' : 'none';
+    });
+  };
+});
+
+/* 검색 간단 기능 */
+$('#search').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q) { renderAll(); return; }
+  const mlist = state.missions.filter(m=>m.text.toLowerCase().includes(q));
+  const recs = state.recs.filter(r=>r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q));
+  const items = state.market.filter(i=>i.title.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q));
+  // 간단히 보여주기 — 바꿔치기: Missions 뷰로 이동하여 필터 적용
+  $('.nav button[data-view="missions"]').click();
+  $('#missionsList').innerHTML = '';
+  mlist.forEach(m=>{
+    const el = document.createElement('div'); el.className='mission';
+    el.innerHTML = `<div class="left"><div class="badge">${m.points}P</div><div><div style="font-weight:800">${m.text}</div></div></div><div><button class="btn green" data-id="${m.id}">완료</button></div>`;
+    $('#missionsList').appendChild(el);
+  });
+});
+
+/* 포인트 변동으로 레벨 업데이트 (간단 룰) */
+function updateLevel(){
+  const p = state.points;
+  if(p >= 500) state.level = 5;
+  else if(p >= 300) state.level = 4;
+  else if(p >= 180) state.level = 3;
+  else if(p >= 80) state.level = 2;
+  else state.level = 1;
+}
+
+/* 페이지 이벤트 바인딩 (구매 버튼 등 동적 바인딩은 renderMarket에서 처리) */
+document.addEventListener('click', (e)=>{
+  const t = e.target;
+  if(t.matches('.mission button')) {
+    const id = t.getAttribute('data-id');
+    if(t.classList.contains('secondary')) claimReward(id);
+    else completeMission(id);
+  }
+});
+
+/* 초기 렌더 */
+updateLevel();
+renderAll();
+
+/* 상태 자동 저장 주기 (예: 10초) — 데모용으로 주석 처리 가능 */
+// setInterval(()=>{ saveStore(state); console.log('저장됨'); }, 10000);
+
+/* 최초 안내 로그 */
+console.log('EcoMission 데모 실행 — 모든 데이터는 브라우저 localStorage에 저장됩니다.');
+</script>
+</body>
+</html>
