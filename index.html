@@ -839,3 +839,33 @@ console.log('EcoMission 데모 실행 — 모든 데이터는 브라우저 local
 </script>
 </body>
 </html>
+<!-- ====== 백엔드 스텁 코드 (server.js) ====== -->
+<script type="module">
+  import express from "https://cdn.skypack.dev/express";
+
+  const app = express();
+  app.use(express.json());
+
+  // ✅ 챌린지 완료 API
+  app.post("/api/challenge/complete", (req, res) => {
+    console.log("✅ 챌린지 완료 요청 수신");
+    res.json({ success: true, points: 10 });
+  });
+
+  // ♻️ 재활용 아이템 등록 API
+  app.post("/api/recycle/add", (req, res) => {
+    console.log("♻️ 재활용 아이템 등록:", req.body.name);
+    res.json({ success: true });
+  });
+
+  // 🌍 탄소 계산 API
+  app.post("/api/carbon", (req, res) => {
+    console.log("🌍 탄소 계산 요청:", req.body);
+    res.json({ success: true });
+  });
+
+  // 서버 실행
+  app.listen(3000, () =>
+    console.log("✅ GreenVerse 서버 실행 중: http://localhost:3000")
+  );
+</script>
